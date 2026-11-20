@@ -1,0 +1,2107 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>AI Academy: โรงเรียนพิชิตอนาคต</title>
+  <style>
+    /* ==========================================================================
+       ส่วนที่ 1: การตั้งค่าสีและตัวแปรหลัก (CSS Variables & Space Theme)
+       ทำงานแบบ 100% Offline ไม่ต้องพึ่งพาไฟล์ CSS หรือ Font จากภายนอก
+       ========================================================================== */
+    :root {
+      --bg-deep: #070b1e;
+      --bg-space: #0e1538;
+      --bg-card: rgba(20, 29, 71, 0.92);
+      --bg-card-hover: rgba(30, 43, 102, 0.96);
+      --border-glow: rgba(56, 189, 248, 0.35);
+      --border-strong: rgba(56, 189, 248, 0.7);
+      --primary: #38bdf8;
+      --primary-dark: #0284c7;
+      --secondary: #a855f7;
+      --accent-gold: #fbbf24;
+      --accent-gold-dark: #d97706;
+      --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.16);
+      --warning: #f59e0b;
+      --warning-bg: rgba(245, 158, 11, 0.16);
+      --danger: #f43f5e;
+      --danger-bg: rgba(244, 63, 94, 0.16);
+      --text-main: #f8fafc;
+      --text-muted: #cbd5e1;
+      --text-dim: #94a3b8;
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+      --shadow-card: 0 20px 50px rgba(0, 0, 0, 0.55), 0 0 25px rgba(56, 189, 248, 0.12);
+      --font-thai: 'Prompt', 'Kanit', 'Sarabun', 'Noto Sans Thai', 'Leelawadee UI', 'Thonburi', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font-thai);
+      background: radial-gradient(ellipse at top, #172259 0%, #090e26 55%, #050714 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+      position: relative;
+    }
+
+    /* ==========================================================================
+       ส่วนที่ 2: พื้นหลังอวกาศและแอนิเมชันดวงดาว (Space Background & Animations)
+       ========================================================================== */
+    .space-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .star {
+      position: absolute;
+      background: #ffffff;
+      border-radius: 50%;
+      animation: twinkle var(--duration, 3s) infinite ease-in-out;
+      opacity: var(--opacity, 0.7);
+    }
+
+    .planet-decor-1 {
+      position: fixed;
+      top: -60px;
+      right: -60px;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #6366f1, #312e81 60%, #1e1b4b 100%);
+      box-shadow: 0 0 60px rgba(99, 102, 241, 0.3);
+      opacity: 0.45;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .planet-decor-2 {
+      position: fixed;
+      bottom: -80px;
+      left: -80px;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #0ea5e9, #0369a1 60%, #082f49 100%);
+      box-shadow: 0 0 70px rgba(14, 165, 233, 0.25);
+      opacity: 0.35;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { transform: scale(1); opacity: 0.35; }
+      50% { transform: scale(1.4); opacity: 1; }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(2deg); }
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 18px rgba(56, 189, 248, 0.35); }
+      50% { box-shadow: 0 0 32px rgba(56, 189, 248, 0.75); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-6px); }
+      80% { transform: translateX(6px); }
+    }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.92) translateY(12px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .animate-float { animation: float 3.8s ease-in-out infinite; }
+    .animate-shake { animation: shake 0.45s ease-in-out; }
+    .animate-pop { animation: popIn 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+    /* ==========================================================================
+       ส่วนที่ 3: โครงสร้างหลักและการ์ด UI (Layout & Cards)
+       ========================================================================== */
+    .app-container {
+      position: relative;
+      z-index: 1;
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 16px 16px 40px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      background: rgba(13, 19, 48, 0.85);
+      border: 1px solid var(--border-glow);
+      border-radius: 999px;
+      backdrop-filter: blur(10px);
+      margin-bottom: 18px;
+    }
+
+    .brand-mini {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 0.98rem;
+      color: var(--primary);
+    }
+
+    .top-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid var(--border-glow);
+      color: var(--text-main);
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .icon-btn:hover {
+      background: rgba(56, 189, 248, 0.28);
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .screen {
+      display: none;
+      flex: 1;
+    }
+
+    .screen.active {
+      display: flex;
+      flex-direction: column;
+      animation: popIn 0.4s ease forwards;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-glow);
+      border-radius: var(--radius-lg);
+      padding: 26px;
+      box-shadow: var(--shadow-card);
+      backdrop-filter: blur(12px);
+    }
+
+    /* ==========================================================================
+       ส่วนที่ 4: หน้าต้อนรับ (Start Screen)
+       ========================================================================== */
+    .hero-section {
+      text-align: center;
+      padding: 12px 6px;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(168, 85, 247, 0.25));
+      border: 1px solid var(--border-strong);
+      color: #7dd3fc;
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+
+    .game-title {
+      font-size: clamp(1.75rem, 4.5vw, 2.65rem);
+      font-weight: 800;
+      background: linear-gradient(135deg, #ffffff 15%, #38bdf8 55%, #fbbf24 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1.25;
+      margin-bottom: 10px;
+    }
+
+    .game-subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 640px;
+      margin: 0 auto 20px;
+    }
+
+    .mascot-wrapper {
+      width: 140px;
+      height: 140px;
+      margin: 0 auto 18px;
+      position: relative;
+    }
+
+    .mission-box {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      text-align: left;
+      margin: 18px 0 24px;
+    }
+
+    .mission-item {
+      background: rgba(11, 17, 43, 0.75);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+    }
+
+    .mission-item h4 {
+      font-size: 0.9rem;
+      color: var(--accent-gold);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mission-item p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+
+    .stats-strip {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .stat-chip {
+      background: rgba(251, 191, 36, 0.12);
+      border: 1px solid rgba(251, 191, 36, 0.35);
+      color: #fde68a;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .btn-group-center {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+      color: #ffffff;
+      border: none;
+      padding: 16px 36px;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 1.15rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 10px 25px rgba(14, 165, 233, 0.45);
+      transition: all 0.22s ease;
+      animation: pulseGlow 2.8s infinite;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px) scale(1.02);
+      filter: brightness(1.08);
+    }
+
+    .btn-primary:active {
+      transform: translateY(1px) scale(0.99);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      padding: 15px 26px;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: var(--primary);
+    }
+
+    /* ==========================================================================
+       ส่วนที่ 5: หน้าจอการเล่นเกม (Gameplay Screen)
+       ========================================================================== */
+    .hud-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    @media (max-width: 640px) {
+      .hud-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .hud-box {
+      background: rgba(13, 20, 52, 0.88);
+      border: 1px solid var(--border-glow);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      text-align: center;
+    }
+
+    .hud-label {
+      font-size: 0.76rem;
+      color: var(--text-dim);
+      display: block;
+    }
+
+    .hud-value {
+      font-size: 1.08rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .hud-value.gold { color: var(--accent-gold); }
+    .hud-value.cyan { color: var(--primary); }
+
+    /* แถบเส้นทางการเรียน ม.4 -> ม.5 -> ม.6 */
+    .journey-tracker {
+      background: rgba(13, 20, 52, 0.85);
+      border: 1px solid var(--border-glow);
+      border-radius: var(--radius-md);
+      padding: 12px 18px;
+      margin-bottom: 16px;
+    }
+
+    .journey-steps {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      margin-bottom: 8px;
+    }
+
+    .journey-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      z-index: 1;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-dim);
+    }
+
+    .journey-step.active { color: var(--primary); }
+    .journey-step.done { color: var(--success); }
+
+    .step-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #1e293b;
+      border: 2px solid #475569;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+    }
+
+    .journey-step.active .step-dot {
+      background: var(--primary);
+      color: #061224;
+      border-color: #ffffff;
+      box-shadow: 0 0 12px var(--primary);
+    }
+
+    .journey-step.done .step-dot {
+      background: var(--success);
+      color: #ffffff;
+      border-color: #a7f3d0;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #38bdf8, #818cf8, #fbbf24);
+      border-radius: 999px;
+      transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* ส่วนเนื้อเรื่องและสถานการณ์ */
+    .level-banner {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(168, 85, 247, 0.22);
+      border: 1px solid rgba(168, 85, 247, 0.5);
+      color: #e9d5ff;
+      padding: 5px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .scenario-header {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      background: rgba(9, 14, 38, 0.65);
+      border: 1px solid rgba(56, 189, 248, 0.22);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 18px;
+    }
+
+    @media (max-width: 560px) {
+      .scenario-header { flex-direction: column; align-items: center; text-align: center; }
+    }
+
+    .npc-avatar {
+      width: 78px;
+      height: 78px;
+      flex-shrink: 0;
+    }
+
+    .scenario-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+
+    .scenario-story {
+      font-size: 0.98rem;
+      color: var(--text-muted);
+    }
+
+    .question-box {
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: #fde047;
+      margin-bottom: 14px;
+      padding-left: 12px;
+      border-left: 4px solid var(--accent-gold);
+    }
+
+    /* ปุ่มคำใบ้ */
+    .hint-area {
+      margin-bottom: 16px;
+    }
+
+    .hint-btn {
+      background: rgba(251, 191, 36, 0.14);
+      border: 1px dashed rgba(251, 191, 36, 0.6);
+      color: #fde68a;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .hint-btn:hover {
+      background: rgba(251, 191, 36, 0.25);
+    }
+
+    .hint-content {
+      display: none;
+      margin-top: 10px;
+      background: rgba(251, 191, 36, 0.1);
+      border: 1px solid rgba(251, 191, 36, 0.35);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      font-size: 0.92rem;
+      color: #fef3c7;
+    }
+
+    .hint-content.visible {
+      display: block;
+      animation: popIn 0.3s ease;
+    }
+
+    /* ตัวเลือกคำตอบ */
+    .choices-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .choice-btn {
+      width: 100%;
+      text-align: left;
+      background: rgba(15, 23, 62, 0.85);
+      border: 2px solid rgba(148, 163, 184, 0.28);
+      border-radius: var(--radius-md);
+      padding: 15px 18px;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.98rem;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      transition: all 0.2s ease;
+    }
+
+    .choice-btn:hover:not(:disabled) {
+      background: var(--bg-card-hover);
+      border-color: var(--primary);
+      transform: translateX(4px);
+    }
+
+    .choice-btn:disabled {
+      cursor: default;
+    }
+
+    .choice-letter {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(56, 189, 248, 0.18);
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .choice-btn.correct {
+      background: var(--success-bg);
+      border-color: var(--success);
+    }
+    .choice-btn.correct .choice-letter {
+      background: var(--success);
+      color: #ffffff;
+      border-color: var(--success);
+    }
+
+    .choice-btn.partial {
+      background: var(--warning-bg);
+      border-color: var(--warning);
+    }
+    .choice-btn.partial .choice-letter {
+      background: var(--warning);
+      color: #0f172a;
+      border-color: var(--warning);
+    }
+
+    .choice-btn.wrong {
+      background: var(--danger-bg);
+      border-color: var(--danger);
+    }
+    .choice-btn.wrong .choice-letter {
+      background: var(--danger);
+      color: #ffffff;
+      border-color: var(--danger);
+    }
+
+    /* กล่อง Feedback ทันที */
+    .feedback-panel {
+      display: none;
+      margin-top: 18px;
+      border-radius: var(--radius-md);
+      padding: 18px;
+      border: 1px solid;
+    }
+
+    .feedback-panel.visible {
+      display: block;
+      animation: popIn 0.35s ease;
+    }
+
+    .feedback-panel.is-correct {
+      background: rgba(16, 185, 129, 0.14);
+      border-color: var(--success);
+    }
+
+    .feedback-panel.is-partial {
+      background: rgba(245, 158, 11, 0.14);
+      border-color: var(--warning);
+    }
+
+    .feedback-panel.is-wrong {
+      background: rgba(244, 63, 94, 0.14);
+      border-color: var(--danger);
+    }
+
+    .feedback-header {
+      font-size: 1.1rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feedback-text {
+      font-size: 0.95rem;
+      color: var(--text-main);
+      margin-bottom: 14px;
+    }
+
+    .next-btn-wrap {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    /* ==========================================================================
+       ส่วนที่ 6: หน้าสรุปผลและแดชบอร์ดการเรียนรู้ (Result & Dashboard Screen)
+       ========================================================================== */
+    .result-hero {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    .stars-display {
+      font-size: 2.4rem;
+      letter-spacing: 6px;
+      margin: 10px 0;
+    }
+
+    .result-status-badge {
+      display: inline-block;
+      padding: 8px 22px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 1.05rem;
+      margin-bottom: 10px;
+    }
+
+    .status-win {
+      background: rgba(16, 185, 129, 0.22);
+      border: 1px solid var(--success);
+      color: #6ee7b7;
+    }
+
+    .status-lose {
+      background: rgba(244, 63, 94, 0.22);
+      border: 1px solid var(--danger);
+      color: #fda4af;
+    }
+
+    .summary-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    @media (max-width: 540px) {
+      .summary-metrics { grid-template-columns: 1fr; }
+    }
+
+    .metric-card {
+      background: rgba(11, 17, 43, 0.8);
+      border: 1px solid var(--border-glow);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      text-align: center;
+    }
+
+    .metric-num {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .metric-num.gold { color: var(--accent-gold); }
+    .metric-num.green { color: var(--success); }
+
+    .dashboard-section {
+      background: rgba(9, 14, 38, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+
+    .dashboard-section h3 {
+      font-size: 1.05rem;
+      color: var(--primary);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .skill-row {
+      margin-bottom: 14px;
+    }
+
+    .skill-row:last-child { margin-bottom: 0; }
+
+    .skill-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .skill-bar-track {
+      height: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .skill-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.8s ease;
+    }
+
+    .badges-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+    }
+
+    .badge-item {
+      background: rgba(20, 29, 71, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      opacity: 0.45;
+      filter: grayscale(1);
+    }
+
+    .badge-item.unlocked {
+      opacity: 1;
+      filter: none;
+      border-color: var(--accent-gold);
+      background: rgba(251, 191, 36, 0.12);
+    }
+
+    .badge-icon {
+      font-size: 1.65rem;
+    }
+
+    .badge-info strong {
+      display: block;
+      font-size: 0.88rem;
+      color: #ffffff;
+    }
+
+    .badge-info span {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    .advice-box {
+      background: rgba(56, 189, 248, 0.1);
+      border-left: 4px solid var(--primary);
+      padding: 14px 16px;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-size: 0.94rem;
+      color: var(--text-main);
+    }
+
+    /* ==========================================================================
+       ส่วนที่ 7: หน้าต่างป๊อปอัปวิธีเล่น (How-to-Play Modal)
+       ========================================================================== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 6, 20, 0.82);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 50;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+      animation: popIn 0.25s ease;
+    }
+
+    .modal-card {
+      background: #111942;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      max-width: 560px;
+      width: 100%;
+      padding: 24px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+    }
+
+    .modal-card h3 {
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+
+    .modal-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+      font-size: 0.94rem;
+      color: var(--text-muted);
+    }
+
+    .modal-list li {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- พื้นหลังอวกาศและดาวเคราะห์ -->
+  <div class="space-canvas" id="starField"></div>
+  <div class="planet-decor-1"></div>
+  <div class="planet-decor-2"></div>
+
+  <div class="app-container">
+    <!-- แถบเมนูด้านบน -->
+    <header class="top-bar">
+      <div class="brand-mini">
+        <span>🚀</span>
+        <span>AI Academy: โรงเรียนพิชิตอนาคต</span>
+      </div>
+      <div class="top-controls">
+        <button type="button" class="icon-btn" id="btnHelpTop" title="วิธีเล่น">
+          <span>📖</span><span>วิธีเล่น</span>
+        </button>
+        <button type="button" class="icon-btn" id="btnSoundToggle" title="เปิด/ปิดเสียง">
+          <span id="soundIcon">🔊</span><span id="soundLabel">เปิดเสียง</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ======================================================================
+         หน้าจอที่ 1: หน้าต้อนรับ (START SCREEN)
+         ====================================================================== -->
+    <main id="screenStart" class="screen active">
+      <div class="card hero-section">
+        <div class="badge-pill">
+          <span>✨</span>
+          <span>การเรียนรู้บูรณาการ • ระดับชั้น ม.4 – ม.6</span>
+        </div>
+
+        <!-- ตัวละครมาสคอต AI เวกเตอร์ 2D น่ารัก -->
+        <div class="mascot-wrapper animate-float" aria-hidden="true">
+          <svg viewBox="0 0 160 160" width="140" height="140">
+            <defs>
+              <radialGradient id="helmetGlow" cx="50%" cy="40%" r="55%">
+                <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.35" />
+                <stop offset="100%" stop-color="#1e3a8a" stop-opacity="0.1" />
+              </radialGradient>
+              <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#f8fafc" />
+                <stop offset="100%" stop-color="#cbd5e1" />
+              </linearGradient>
+            </defs>
+            <!-- วงโคจรด้านหลัง -->
+            <ellipse cx="80" cy="88" rx="68" ry="22" fill="none" stroke="#38bdf8" stroke-width="2" stroke-dasharray="6 5" opacity="0.55" transform="rotate(-14 80 88)" />
+            <!-- เสาอากาศ -->
+            <line x1="80" y1="22" x2="80" y2="36" stroke="#94a3b8" stroke-width="4" stroke-linecap="round" />
+            <circle cx="80" cy="18" r="6" fill="#fbbf24" />
+            <!-- ลำตัวหุ่นยนต์ -->
+            <rect x="52" y="102" width="56" height="38" rx="16" fill="url(#bodyGrad)" stroke="#38bdf8" stroke-width="2.5" />
+            <rect x="65" y="112" width="30" height="16" rx="6" fill="#0f172a" />
+            <circle cx="74" cy="120" r="3" fill="#34d399" />
+            <circle cx="86" cy="120" r="3" fill="#38bdf8" />
+            <!-- แขน -->
+            <rect x="34" y="106" width="14" height="26" rx="7" fill="#e2e8f0" transform="rotate(15 34 106)" />
+            <rect x="112" y="104" width="14" height="26" rx="7" fill="#e2e8f0" transform="rotate(-22 112 104)" />
+            <!-- หัวและหมวกอวกาศ -->
+            <rect x="38" y="34" width="84" height="66" rx="30" fill="url(#bodyGrad)" stroke="#38bdf8" stroke-width="3" />
+            <rect x="48" y="45" width="64" height="44" rx="20" fill="#0f172a" />
+            <rect x="48" y="45" width="64" height="44" rx="20" fill="url(#helmetGlow)" />
+            <!-- ดวงตาและรอยยิ้ม -->
+            <circle cx="67" cy="65" r="7" fill="#38bdf8" />
+            <circle cx="69" cy="63" r="2.5" fill="#ffffff" />
+            <circle cx="93" cy="65" r="7" fill="#38bdf8" />
+            <circle cx="95" cy="63" r="2.5" fill="#ffffff" />
+            <path d="M 72 76 Q 80 83 88 76" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round" />
+            <!-- ดาวเล็กๆ -->
+            <circle cx="24" cy="44" r="3" fill="#fbbf24" />
+            <circle cx="136" cy="52" r="2.5" fill="#a855f7" />
+          </svg>
+        </div>
+
+        <h1 class="game-title">AI Academy: โรงเรียนพิชิตอนาคต</h1>
+        <p class="game-subtitle">
+          สวมบทบาทนักเรียนมัธยมปลายในโรงเรียนอวกาศยุค AI ตัดสินใจใช้ AI เป็นผู้ช่วยทำรายงาน เตรียมสอบ ทำโครงงาน และแก้ปัญหากับเพื่อนอย่างชาญฉลาดเพื่อเรียนจบชั้น ม.6!
+        </p>
+
+        <!-- สรุปเป้าหมายและเงื่อนไข -->
+        <div class="mission-box">
+          <div class="mission-item">
+            <h4>🎯 เป้าหมาย / ภารกิจหลัก</h4>
+            <p>ผ่านภารกิจการเรียนทั้ง 3 ระดับชั้น (ม.4 – ม.6) ด้วยการใช้ AI อย่างมีวิจารณญาณและมีจริยธรรม เพื่อ<strong>เรียนจบชั้น ม.6</strong></p>
+          </div>
+          <div class="mission-item">
+            <h4>🏆 เงื่อนไขการชนะ</h4>
+            <p>ทำคะแนนรวมได้ <strong>600 คะแนนขึ้นไป (67%)</strong> จากคะแนนเต็ม 900 คะแนน เพื่อรับประกาศนียบัตรจบการศึกษา</p>
+          </div>
+          <div class="mission-item">
+            <h4>⚠️ เงื่อนไขการแพ้</h4>
+            <p>หากคะแนนรวม<strong>ต่ำกว่า 600 คะแนน</strong> เมื่อจบภารกิจ จะยังไม่ผ่านเกณฑ์จบการศึกษาและต้องทบทวนภารกิจใหม่</p>
+          </div>
+        </div>
+
+        <!-- สถิติสูงสุดจาก LocalStorage -->
+        <div class="stats-strip">
+          <div class="stat-chip">🏅 คะแนนสูงสุด: <span id="startHighScore">0</span> / 900</div>
+          <div class="stat-chip">🪙 เหรียญสะสมสูงสุด: <span id="startBestCoins">0</span></div>
+          <div class="stat-chip">🎖️ ตราประทับที่ปลดล็อก: <span id="startBadgeCount">0</span> / 4</div>
+        </div>
+
+        <div class="btn-group-center">
+          <button type="button" class="btn-primary" id="btnStartGame">
+            <span>🚀</span>
+            <span>เริ่มภารกิจเรียนจบ ม.6</span>
+          </button>
+          <button type="button" class="btn-secondary" id="btnShowHowTo">
+            <span>📘</span>
+            <span>กติกาและวิธีเล่น</span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- ======================================================================
+         หน้าจอที่ 2: หน้าจอการเล่นเกม (GAMEPLAY SCREEN)
+         ====================================================================== -->
+    <section id="screenGame" class="screen">
+      <!-- แถบสถานะผู้เล่น (HUD) -->
+      <div class="hud-grid">
+        <div class="hud-box">
+          <span class="hud-label">ระดับชั้นปัจจุบัน</span>
+          <span class="hud-value cyan" id="hudGrade">ม.4 (ด่าน 1)</span>
+        </div>
+        <div class="hud-box">
+          <span class="hud-label">ภารกิจที่</span>
+          <span class="hud-value" id="hudProgress">1 / 9</span>
+        </div>
+        <div class="hud-box">
+          <span class="hud-label">คะแนนความรู้</span>
+          <span class="hud-value cyan" id="hudScore">0</span>
+        </div>
+        <div class="hud-box">
+          <span class="hud-label">เหรียญทอง</span>
+          <span class="hud-value gold">🪙 <span id="hudCoins">0</span></span>
+        </div>
+      </div>
+
+      <!-- แถบความก้าวหน้าเส้นทาง ม.4 -> ม.5 -> ม.6 -->
+      <div class="journey-tracker">
+        <div class="journey-steps">
+          <div class="journey-step active" id="stepM4">
+            <div class="step-dot">ม.4</div>
+            <span>ดาวเริ่มต้น</span>
+          </div>
+          <div class="journey-step" id="stepM5">
+            <div class="step-dot">ม.5</div>
+            <span>เนบิวลาวิเคราะห์</span>
+          </div>
+          <div class="journey-step" id="stepM6">
+            <div class="step-dot">ม.6</div>
+            <span>กาแล็กซีโครงงาน</span>
+          </div>
+          <div class="journey-step" id="stepGrad">
+            <div class="step-dot">🎓</div>
+            <span>จบ ม.6</span>
+          </div>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progressBarFill"></div>
+        </div>
+      </div>
+
+      <!-- การ์ดสถานการณ์และคำถาม -->
+      <div class="card" id="questionCard">
+        <div class="level-banner" id="levelBanner">🪐 ด่านที่ 1 • ชั้นมัธยมศึกษาปีที่ 4 (ระดับง่าย)</div>
+
+        <div class="scenario-header">
+          <div class="npc-avatar" id="mascotMood" aria-hidden="true">
+            <!-- SVG หุ่นยนต์ผู้ช่วย AI ปรับอารมณ์ได้ -->
+            <svg viewBox="0 0 100 100" width="78" height="78">
+              <circle cx="50" cy="50" r="46" fill="#1e293b" stroke="#38bdf8" stroke-width="2.5" />
+              <line x1="50" y1="10" x2="50" y2="22" stroke="#94a3b8" stroke-width="3" />
+              <circle cx="50" cy="9" r="4.5" fill="#fbbf24" />
+              <rect x="24" y="24" width="52" height="44" rx="18" fill="#f8fafc" />
+              <rect x="30" y="31" width="40" height="28" rx="12" fill="#0f172a" />
+              <circle id="eyeLeft" cx="42" cy="44" r="4.5" fill="#38bdf8" />
+              <circle id="eyeRight" cx="58" cy="44" r="4.5" fill="#38bdf8" />
+              <path id="mouthPath" d="M 44 52 Q 50 57 56 52" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" />
+              <rect x="34" y="72" width="32" height="14" rx="7" fill="#38bdf8" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="scenario-title" id="scenarioTitle">ชื่อสถานการณ์</h2>
+            <p class="scenario-story" id="scenarioStory">รายละเอียดสถานการณ์...</p>
+          </div>
+        </div>
+
+        <div class="question-box" id="questionText">คำถาม...</div>
+
+        <!-- ระบบคำใบ้ช่วยคิด -->
+        <div class="hint-area">
+          <button type="button" class="hint-btn" id="btnToggleHint">
+            <span>💡</span>
+            <span>ขอคำใบ้ช่วยคิดจาก AI ผู้ช่วย</span>
+          </button>
+          <div class="hint-content" id="hintContent"></div>
+        </div>
+
+        <!-- รายการตัวเลือก -->
+        <div class="choices-list" id="choicesContainer"></div>
+
+        <!-- กล่องแสดงผลลัพธ์และคำอธิบายทันที (Real-time Feedback) -->
+        <div class="feedback-panel" id="feedbackPanel">
+          <div class="feedback-header" id="feedbackHeader">ผลลัพธ์</div>
+          <p class="feedback-text" id="feedbackText">คำอธิบาย...</p>
+          <div class="next-btn-wrap">
+            <button type="button" class="btn-primary" id="btnNextQuestion" style="padding: 12px 26px; font-size: 1rem;">
+              <span id="nextBtnLabel">ภารกิจถัดไป</span>
+              <span>➡️</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         หน้าจอที่ 3: หน้าสรุปผลและแดชบอร์ดการเรียนรู้ (RESULT & DASHBOARD)
+         ====================================================================== -->
+    <section id="screenResult" class="screen">
+      <div class="card">
+        <div class="result-hero">
+          <div class="result-status-badge" id="resultStatusBadge">สถานะการจบการศึกษา</div>
+          <h2 class="game-title" id="resultTitle">ผลการเรียน AI Academy</h2>
+          <div class="stars-display" id="resultStars">⭐⭐⭐</div>
+          <p class="game-subtitle" id="resultSubtitle" style="margin-bottom: 0;">สรุปผลการเดินทาง...</p>
+        </div>
+
+        <!-- ตัวเลขสถิติสำคัญ -->
+        <div class="summary-metrics">
+          <div class="metric-card">
+            <span class="hud-label">คะแนนรวม (เกณฑ์ผ่าน 600)</span>
+            <div class="metric-num" id="resScore">0 / 900</div>
+          </div>
+          <div class="metric-card">
+            <span class="hud-label">อัตราความถูกต้อง (Accuracy)</span>
+            <div class="metric-num green" id="resAccuracy">0%</div>
+          </div>
+          <div class="metric-card">
+            <span class="hud-label">เหรียญทองที่ได้รับ</span>
+            <div class="metric-num gold">🪙 <span id="resCoins">0</span></div>
+          </div>
+        </div>
+
+        <!-- แดชบอร์ดวิเคราะห์ทักษะ 3 ด้าน -->
+        <div class="dashboard-section">
+          <h3>📊 แดชบอร์ดวิเคราะห์สมรรถนะผู้เรียน</h3>
+
+          <div class="skill-row">
+            <div class="skill-meta">
+              <span>🧠 การคิดวิเคราะห์และตรวจสอบข้อมูล (Critical Thinking)</span>
+              <span id="skillCriticalPct">0%</span>
+            </div>
+            <div class="skill-bar-track">
+              <div class="skill-bar-fill" id="skillCriticalBar" style="width: 0%; background: #38bdf8;"></div>
+            </div>
+          </div>
+
+          <div class="skill-row">
+            <div class="skill-meta">
+              <span>💻 การรู้ดิจิทัลและการสั่งงาน AI (Digital Literacy)</span>
+              <span id="skillLiteracyPct">0%</span>
+            </div>
+            <div class="skill-bar-track">
+              <div class="skill-bar-fill" id="skillLiteracyBar" style="width: 0%; background: #a855f7;"></div>
+            </div>
+          </div>
+
+          <div class="skill-row">
+            <div class="skill-meta">
+              <span>⚖️ จริยธรรมทางวิชาการและการทำงานร่วมกัน (Academic Ethics)</span>
+              <span id="skillEthicsPct">0%</span>
+            </div>
+            <div class="skill-bar-track">
+              <div class="skill-bar-fill" id="skillEthicsBar" style="width: 0%; background: #10b981;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ข้อเสนอแนะรายบุคคล -->
+        <div class="dashboard-section">
+          <h3>🧭 ข้อเสนอแนะเพื่อการพัฒนาตนเองรายบุคคล</h3>
+          <div class="advice-box" id="personalAdvice">
+            กำลังวิเคราะห์ผลการเรียนรู้...
+          </div>
+        </div>
+
+        <!-- ตราประทับเกียรติยศ (Badges) -->
+        <div class="dashboard-section">
+          <h3>🎖️ ตราประทับเกียรติยศ (Badges)</h3>
+          <div class="badges-grid" id="badgesGrid"></div>
+        </div>
+
+        <div class="btn-group-center">
+          <button type="button" class="btn-primary" id="btnPlayAgain">
+            <span>🔄</span>
+            <span>เล่นอีกครั้งเพื่อพัฒนาสถิติ</span>
+          </button>
+          <button type="button" class="btn-secondary" id="btnBackHome">
+            <span>🏠</span>
+            <span>กลับหน้าหลัก</span>
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- หน้าต่างป๊อปอัปวิธีเล่น -->
+  <div class="modal-overlay" id="modalHowTo" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <h3>📖 วิธีเล่น AI Academy: โรงเรียนพิชิตอนาคต</h3>
+      <ul class="modal-list">
+        <li><strong>1. ภารกิจ 3 ระดับชั้น:</strong> ผจญภัยผ่านด่านการเรียนตั้งแต่ <strong>ม.4 (ง่าย) → ม.5 (ปานกลาง) → ม.6 (ยาก)</strong> รวมทั้งหมด 9 สถานการณ์</li>
+        <li><strong>2. เลือกใช้อย่างมีสติ:</strong> อ่านสถานการณ์การทำรายงาน เตรียมสอบ ทำโครงงาน และแก้ปัญหากับเพื่อน แล้วเลือกแนวทางใช้ AI ที่เหมาะสมที่สุด</li>
+        <li><strong>3. ใช้คำใบ้ได้ไม่จำกัดเวลา:</strong> เล่นได้สบายๆ ไม่จับเวลา หากไม่มั่นใจสามารถกดปุ่ม <em>"ขอคำใบ้ช่วยคิด"</em> ได้ทุกข้อ</li>
+        <li><strong>4. เกณฑ์จบการศึกษา:</strong> ตอบเหมาะสมที่สุดได้ข้อละ 100 คะแนน ต้องทำคะแนนรวมให้ได้ <strong>อย่างน้อย 600 คะแนน</strong> จึงจะเรียนจบชั้น ม.6!</li>
+      </ul>
+      <div class="btn-group-center">
+        <button type="button" class="btn-primary" id="btnCloseModal" style="padding: 12px 28px; font-size: 1rem;">
+          <span>เข้าใจแล้ว ลุยเลย!</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       ส่วนที่ 1: ข้อมูลโจทย์และบทเรียน (GAME_DATA)
+       *** คำแนะนำสำหรับครูผู้สอน ***
+       ครูสามารถแก้ไขข้อความสถานการณ์ คำถาม คำใบ้ ตัวเลือก คะแนน และคำอธิบายได้ทันที
+       โดยโครงสร้างแต่ละข้อประกอบด้วย:
+       - level: 1 (ม.4), 2 (ม.5), 3 (ม.6)
+       - gradeLabel: ชื่อระดับชั้น
+       - difficulty: ระดับความยาก
+       - skill: 'critical' (คิดวิเคราะห์) | 'literacy' (รู้ดิจิทัล) | 'ethics' (จริยธรรม/ร่วมมือ)
+       - title: ชื่อภารกิจ
+       - story: เรื่องราวสถานการณ์
+       - question: คำถามที่ต้องการให้ผู้เรียนตัดสินใจ
+       - hint: คำใบ้ช่วยคิด
+       - choices: ตัวเลือก 3 ข้อ (text, points, coins, type: 'correct'|'partial'|'wrong', feedback)
+       ========================================================================== */
+    const GAME_DATA = [
+      // ==================== ด่านที่ 1: มัธยมศึกษาปีที่ 4 (ระดับง่าย) ====================
+      {
+        level: 1,
+        gradeLabel: "ม.4 (ด่าน 1)",
+        difficulty: "ระดับง่าย • ดาวเคราะห์แห่งการเริ่มต้น",
+        skill: "ethics",
+        title: "ภารกิจที่ 1: รายงานพลังงานสะอาดชิ้นแรก",
+        story: "คุณครูวิชาวิทยาศาสตร์สั่งทำรายงานเรื่อง 'พลังงานสะอาดในอนาคต' เพื่อนร่วมกลุ่มเสนอว่า 'ให้ AI เขียนรายงานให้ทั้งหมดตั้งแต่ต้นจนจบ แล้วก๊อปปี้ส่งเลย จะได้เสร็จไวๆ'",
+        question: "ในฐานะนักเรียนยุค AI คุณควรตัดสินใจอย่างไรกับข้อเสนอนี้?",
+        hint: "AI เป็นผู้ช่วยระดมสมองที่ดี แต่ผลงานวิชาการต้องเกิดจากความเข้าใจและการเรียบเรียงของผู้เรียนเอง",
+        choices: [
+          {
+            text: "ใช้ AI ช่วยวางโครงเรื่องและแนะนำแนวคิดเบื้องต้น จากนั้นสืบค้นข้อมูลจากแหล่งอ้างอิงที่เชื่อถือได้และเรียบเรียงด้วยภาษาของตนเอง",
+            points: 100,
+            coins: 20,
+            type: "correct",
+            feedback: "ยอดเยี่ยม! การใช้ AI เป็นผู้ช่วยวางโครงร่างแล้วลงมือค้นคว้าและเรียบเรียงเอง ช่วยให้เกิดการเรียนรู้จริงและไม่ละเมิดจริยธรรมทางวิชาการ"
+          },
+          {
+            text: "ให้ AI เขียนเนื้อหาทั้งหมด แล้วเปลี่ยนฟอนต์และจัดหน้ากระดาษใหม่เพื่อไม่ให้คุณครูสังเกตเห็น",
+            points: 0,
+            coins: 0,
+            type: "wrong",
+            feedback: "ยังไม่เหมาะสม! การคัดลอกผลงาน AI มาส่งทั้งหมดถือเป็นการขาดความซื่อสัตย์ทางวิชาการ (Plagiarism) และทำให้เราไม่ได้พัฒนาทักษะการคิด"
+          },
+          {
+            text: "สั่งห้ามเพื่อนในกลุ่มใช้ AI หรืออินเทอร์เน็ตโดยเด็ดขาด ให้ไปหาหนังสือเก่าในห้องสมุดอย่างเดียวเท่านั้น",
+            points: 40,
+            coins: 5,
+            type: "partial",
+            feedback: "ปลอดภัยด้านจริยธรรม แต่เสียโอกาสในการใช้เทคโนโลยีดิจิทัลเป็นเครื่องมือช่วยเรียนรู้ เราสามารถใช้ AI อย่างถูกวิธีควบคู่กับการอ่านหนังสือได้"
+          }
+        ]
+      },
+      {
+        level: 1,
+        gradeLabel: "ม.4 (ด่าน 1)",
+        difficulty: "ระดับง่าย • ดาวเคราะห์แห่งการเริ่มต้น",
+        skill: "critical",
+        title: "ภารกิจที่ 2: หนังสือปริศนาที่ AI อ้างอิง",
+        story: "ขณะใช้ AI ช่วยสรุปข้อมูลประกอบรายงานประวัติศาสตร์ AI ได้อ้างอิงชื่อหนังสือวิชาการและเลขหน้าอย่างละเอียด แต่เมื่อคุณลองค้นชื่อหนังสือเล่มนั้นกลับไม่พบข้อมูลในห้องสมุดหรือฐานข้อมูลใดเลย",
+        question: "ปรากฏการณ์นี้คืออะไร และคุณควรรับมืออย่างไร?",
+        hint: "AI บางครั้งอาจสร้างข้อมูลที่ดูน่าเชื่อถือแต่ไม่มีอยู่จริง ซึ่งเรียกว่าอาการหลอนของ AI (AI Hallucination)",
+        choices: [
+          {
+            text: "ตรวจสอบความถูกต้องกับแหล่งข้อมูลปฐมภูมิหรือฐานข้อมูลวิชาการที่เชื่อถือได้ก่อนนำมาอ้างอิงเสมอ",
+            points: 100,
+            coins: 20,
+            type: "correct",
+            feedback: "ถูกต้อง! AI อาจเกิดอาการ 'หลอนข้อมูล' (Hallucination) สร้างแหล่งอ้างอิงปลอมขึ้นมาได้ การตรวจสอบข้อเท็จจริง (Fact-Checking) คือหัวใจของ Critical Thinking"
+          },
+          {
+            text: "ใส่ชื่อหนังสือเล่มนั้นลงในบรรณานุกรมทันที เพราะ AI ประมวลผลจากข้อมูลมหาศาลจึงไม่มีทางผิดพลาด",
+            points: 0,
+            coins: 0,
+            type: "wrong",
+            feedback: "ระวัง! AI ไม่ใช่ฐานข้อมูลที่ถูกต้อง 100% การเชื่อโดยไม่ตรวจสอบจะทำให้รายงานของคุณมีข้อมูลเท็จและขาดความน่าเชื่อถือ"
+          },
+          {
+            text: "ลบเนื้อหาทั้งหมดทิ้งและเลิกใช้ AI ช่วยสรุปข้อมูลอีกเลยตลอดทั้งเทอม",
+            points: 40,
+            coins: 5,
+            type: "partial",
+            feedback: "การไม่ใช้ข้อมูลที่ตรวจสอบไม่ได้เป็นเรื่องดี แต่เราไม่จำเป็นต้องเลิกใช้เครื่องมือ เพียงแค่ต้องรู้เท่าทันและตรวจสอบคำตอบทุกครั้ง"
+          }
+        ]
+      },
+      {
+        level: 1,
+        gradeLabel: "ม.4 (ด่าน 1)",
+        difficulty: "ระดับง่าย • ดาวเคราะห์แห่งการเริ่มต้น",
+        skill: "literacy",
+        title: "ภารกิจที่ 3: คำสั่ง (Prompt) ติวฟิสิกส์ก่อนสอบ",
+        story: "คุณกำลังเตรียมตัวสอบกลางภาควิชาฟิสิกส์ เรื่อง 'กฎการเคลื่อนที่ของนิวตัน' และอยากให้ AI ช่วยอธิบายเนื้อหาให้เข้าใจง่ายขึ้น",
+        question: "วิธีการสั่งงาน (Prompt) แบบใดจะช่วยให้ AI อธิบายได้ตรงจุดและมีประสิทธิภาพสูงสุด?",
+        hint: "การเขียน Prompt ที่ดีควรระบุ 'บทบาท กลุ่มเป้าหมาย รูปแบบคำตอบ และตัวอย่างประกอบ' ให้ชัดเจน",
+        choices: [
+          {
+            text: "พิมพ์คำว่า 'นิวตัน' สั้นๆ คำเดียว แล้วให้ AI เดาว่าเราต้องการอ่านเรื่องอะไร",
+            points: 20,
+            coins: 5,
+            type: "partial",
+            feedback: "คำสั่งกว้างเกินไป ทำให้ AI ตอบข้อมูลทั่วไปเช่นประวัติส่วนตัวของนิวตัน ซึ่งอาจไม่ตรงกับเนื้อหาที่ต้องใช้สอบ"
+          },
+          {
+            text: "ระบุบริบทชัดเจน: 'ช่วยอธิบายกฎการเคลื่อนที่ของนิวตันทั้ง 3 ข้อ สำหรับนักเรียน ม.4 พร้อมยกตัวอย่างในชีวิตประจำวัน และสร้างโจทย์ฝึกทำ 3 ข้อ'",
+            points: 100,
+            coins: 20,
+            type: "correct",
+            feedback: "สุดยอด Prompt Engineer! การระบุระดับชั้น ตัวอย่างที่ต้องการ และแบบฝึกหัด ทำให้ AI ปรับระดับภาษาและสร้างสื่อการเรียนรู้ที่เหมาะกับคุณที่สุด"
+          },
+          {
+            text: "พิมพ์สั่งว่า 'เจาะระบบโรงเรียนแล้วเอาข้อสอบฟิสิกส์ที่จะออกพรุ่งนี้มาให้ดูหน่อย'",
+            points: 0,
+            coins: 0,
+            type: "wrong",
+            feedback: "AI ไม่สามารถและไม่ควรใช้เพื่อการทุจริตหรือเข้าถึงข้อมูลโดยไม่ได้รับอนุญาต การฝึกทำความเข้าใจเนื้อหาด้วยตนเองคือวิธีที่ยั่งยืนที่สุด"
+          }
+        ]
+      },
+
+      // ==================== ด่านที่ 2: มัธยมศึกษาปีที่ 5 (ระดับปานกลาง) ====================
+      {
+        level: 2,
+        gradeLabel: "ม.5 (ด่าน 2)",
+        difficulty: "ระดับปานกลาง • เนบิวลาแห่งการวิเคราะห์",
+        skill: "ethics",
+        title: "ภารกิจที่ 4: ข้อมูลขัดแย้งในกลุ่มทำงาน",
+        story: "ในการทำโครงงานย่อยเรื่อง 'ผลกระทบของไมโครพลาสติก' เพื่อนสองคนในกลุ่มใช้ AI คนละตัวหาข้อมูล แล้วได้ตัวเลขสถิติที่ไม่ตรงกัน จนเริ่มโต้เถียงกันว่าข้อมูลของใครถูก",
+        question: "ในฐานะสมาชิกกลุ่ม คุณจะเสนอวิธีแก้ปัญหาให้เพื่อนร่วมงานอย่างไร?",
+        hint: "เมื่อคำตอบจาก AI ต่างกัน ต้องย้อนกลับไปดู 'คำถามที่ถาม' และ 'แหล่งข้อมูลอ้างอิงต้นทาง'",
+        choices: [
+          {
+            text: "เลือกเชื่อเพื่อนที่พูดเสียงดังที่สุดเพื่อตัดความรำคาญ จะได้รีบส่งงานให้ทันเวลา",
+            points: 10,
+            coins: 0,
+            type: "partial",
+            feedback: "การรีบจบปัญหาโดยไม่ตรวจสอบข้อเท็จจริง อาจทำให้งานกลุ่มผิดพลาดและไม่ช่วยคลี่คลายความเข้าใจผิดของเพื่อน"
+          },
+          {
+            text: "แอบลบสไลด์ของเพื่อนทิ้งตอนกลางคืน แล้วใส่ข้อมูลของตัวเองลงไปแทนโดยไม่บอกใคร",
+            points: 0,
+            coins: 0,
+            type: "wrong",
+            feedback: "การกระทำโดยพลการและไม่ให้เกียรติเพื่อนร่วมทีม ทำลายความไว้วางใจและทักษะการทำงานร่วมกัน (Collaboration)"
+          },
+          {
+            text: "ชวนเพื่อนมาเปรียบเทียบคำสั่ง (Prompt) ที่ใช้ สืบค้นแหล่งข้อมูลงานวิจัยต้นทางของตัวเลขทั้งสองชุด และสรุปข้อมูลที่แม่นยำร่วมกัน",
+            points: 100,
+            coins: 25,
+            type: "correct",
+            feedback: "ยอดเยี่ยมมาก! คุณใช้ทั้งทักษะการสื่อสารอย่างสร้างสรรค์และการคิดวิเคราะห์เพื่อหาหลักฐานทางวิทยาศาสตร์มายืนยันข้อเท็จจริง"
+          }
+        ]
+      },
+      {
+        level: 2,
+        gradeLabel: "ม.5 (ด่าน 2)",
+        difficulty: "ระดับปานกลาง • เนบิวลาแห่งการวิเคราะห์",
+        skill: "literacy",
+        title: "ภารกิจที่ 5: ความลับในไฟล์แบบสอบถาม",
+        story: "เพื่อนในทีมส่งไฟล์ตารางข้อมูลแบบสอบถามของนักเรียน 200 คน ซึ่งมีทั้ง 'ชื่อ-นามสกุล เลขประจำตัวนักเรียน และเบอร์โทรศัพท์' และบอกให้คุณอัปโหลดไฟล์นี้เข้า AI สาธารณะเพื่อช่วยวิเคราะห์ค่าเฉลี่ย",
+        question: "ก่อนนำข้อมูลเข้าสู่ระบบ AI สาธารณะ คุณต้องคำนึงถึงเรื่องใดเป็นอันดับแรก?",
+        hint: "ข้อมูลส่วนบุคคลที่ระบุตัวตนได้ (PII) ไม่ควรถูกเปิดเผยสู่ระบบสาธารณะโดยไม่ได้รับอนุญาต (หลัก PDPA)",
+        choices: [
+          {
+            text: "ลบคอลัมน์ข้อมูลส่วนบุคคล (ชื่อ เลขประจำตัว เบอร์โทร) ออกให้เหลือเฉพาะข้อมูลเชิงสถิติที่ไม่ระบุตัวตน (Anonymize) ก่อนนำไปวิเคราะห์",
+            points: 100,
+            coins: 25,
+            type: "correct",
+            feedback: "ถูกต้อง! การปกป้องข้อมูลส่วนบุคคล (Data Privacy / PDPA) เป็นทักษะ Digital Literacy ที่สำคัญมาก ข้อมูลที่อัปโหลดขึ้น AI สาธารณะอาจถูกนำไปประมวลผลต่อได้"
+          },
+          {
+            text: "อัปโหลดไฟล์ทั้งหมดขึ้นไปทันที เพราะ AI เป็นคอมพิวเตอร์จึงไม่เอาข้อมูลของเพื่อนไปบอกใครแน่นอน",
+            points: 0,
+            coins: 0,
+            type: "wrong",
+            feedback: "อันตราย! ระบบ AI สาธารณะหลายแห่งอาจบันทึกประวัติการสนทนาหรือนำไปใช้ฝึกสอนโมเดลต่อ การอัปโหลดข้อมูลส่วนบุคคลของผู้อื่นถือเป็นการละเมิดความเป็นส่วนตัว"
+          },
+          {
+            text: "ส่งไฟล์ที่มีเบอร์โทรเพื่อนไปโพสต์ถามในกลุ่มสาธารณะบนโซเชียลมีเดียเพื่อให้คนช่วยคิดเลขแทน",
+            points: 0,
+            coins: 0,
+            type: "wrong",
+            feedback: "ยิ่งเสี่ยงกว่าเดิม! การเผยแพร่ข้อมูลส่วนบุคคลของผู้อื่นในที่สาธารณะโดยไม่ได้รับความยินยอมผิดทั้งจริยธรรมและกฎหมายคุ้มครองข้อมูลส่วนบุคคล"
+          }
+        ]
+      },
+      {
+        level: 2,
+        gradeLabel: "ม.5 (ด่าน 2)",
+        difficulty: "ระดับปานกลาง • เนบิวลาแห่งการวิเคราะห์",
+        skill: "critical",
+        title: "ภารกิจที่ 6: โค้งสุดท้ายเตรียมสอบชีววิทยา",
+        story: "เหลือเวลาอีก 3 วันก่อนสอบปลายภาควิชาชีววิทยา เนื้อหามีความซับซ้อนมาก คุณต้องการใช้ AI เป็นติวเตอร์ส่วนตัวเพื่อเตรียมความพร้อม",
+        question: "กระบวนการเรียนรู้แบบใดร่วมกับ AI ที่จะช่วยให้สมองจดจำและเข้าใจเนื้อหาได้ลึกซึ้งที่สุด (Active Learning)?",
+        hint: "การเรียนรู้เชิงรุกเกิดจากการที่เราลงมือ 'สรุป ทดสอบ และรับคำแนะนำเพื่อแก้ไขจุดอ่อน'",
+        choices: [
+          {
+            text: "ให้ AI สรุปเนื้อหาทั้งหมดให้เหลือ 10 บรรทัด แล้วอ่านผ่านๆ รอบเดียวก่อนนอน",
+            points: 30,
+            coins: 5,
+            type: "partial",
+            feedback: "การอ่านสรุปสั้นๆ อย่างเดียวเป็นการเรียนรู้เชิงรับ (Passive) อาจทำให้จำได้เพียงผิวเผินและทำข้อสอบวิเคราะห์ไม่ได้"
+          },
+          {
+            text: "ลองสรุปความเข้าใจของตนเองก่อน แล้วให้ AI สวมบทบาทเป็นติวเตอร์ตั้งคำถามปลายเปิดให้ฝึกตอบ พร้อมช่วยชี้จุดที่ยังอธิบายคลาดเคลื่อน",
+            points: 100,
+            coins: 25,
+            type: "correct",
+            feedback: "นี่คือสุดยอดเทคนิค Active Learning! การดึงความรู้มาอธิบายและให้ AI ช่วยสะท้อนคิด (Feedback) จะช่วยให้คุณเห็นจุดบอดและเข้าใจเนื้อหาอย่างแท้จริง"
+          },
+          {
+            text: "ไม่ต้องอ่านหนังสือเลย แต่เตรียมซ่อนโทรศัพท์ไว้เปิดถาม AI ในห้องสอบ",
+            points: 0,
+            coins: 0,
+            type: "wrong",
+            feedback: "การทุจริตในการสอบมีโทษร้ายแรงทางวินัยและทำให้คุณไม่สามารถพัฒนาศักยภาพที่แท้จริงของตนเองได้"
+          }
+        ]
+      },
+
+      // ==================== ด่านที่ 3: มัธยมศึกษาปีที่ 6 (ระดับยาก) ====================
+      {
+        level: 3,
+        gradeLabel: "ม.6 (ด่าน 3)",
+        difficulty: "ระดับยาก • กาแล็กซีแห่งนวัตกรรม",
+        skill: "critical",
+        title: "ภารกิจที่ 7: โครงงาน AI คัดแยกขยะที่มีอคติ",
+        story: "กลุ่มของคุณทำโครงงาน ม.6 พัฒนาโมเดล AI แยกขยะรีไซเคิล ผลการทดสอบพบว่า AI แยกขวดพลาสติกใสได้แม่นยำ 98% แต่แยกกล่องเครื่องดื่มสีเข้มผิดพลาดบ่อยมาก",
+        question: "ในฐานะผู้พัฒนาโครงงาน คุณวิเคราะห์สาเหตุและวางแผนแก้ไขปัญหานี้อย่างไร?",
+        hint: "ประสิทธิภาพของ AI ขึ้นอยู่กับความหลากหลายและความสมดุลของข้อมูลที่ใช้ฝึกสอน (Training Data)",
+        choices: [
+          {
+            text: "ตัดประเภท 'กล่องเครื่องดื่มสีเข้ม' ออกจากการทดสอบไปเลย จะได้เขียนในเล่มรายงานว่า AI แม่นยำ 98%",
+            points: 0,
+            coins: 0,
+            type: "wrong",
+            feedback: "การบิดเบือนขอบเขตการทดสอบเพื่อปกปิดข้อบกพร่อง ไม่ใช่วิธีการทางวิทยาศาสตร์และทำให้โครงงานใช้งานจริงไม่ได้"
+          },
+          {
+            text: "เกิดจากความไม่สมดุลของข้อมูลฝึกสอน (Data Bias) จึงเก็บภาพตัวอย่างกล่องเครื่องดื่มสีเข้มในหลากหลายมุมและสภาพแสงเพิ่มเติมเพื่อฝึกโมเดลใหม่",
+            points: 100,
+            coins: 30,
+            type: "correct",
+            feedback: "เฉียบคมมาก! คุณเข้าใจหลักการสำคัญของ Machine Learning ว่า 'ข้อมูลที่ไม่หลากหลายทำให้เกิดอคติ (Bias)' การเพิ่มชุดข้อมูลฝึกสอนที่ครอบคลุมคือวิธีแก้ที่ตรงจุด"
+          },
+          {
+            text: "ส่งโครงงานทั้งที่ยังผิดพลาด โดยเขียนสรุปสั้นๆ ว่า 'เป็นข้อจำกัดของเทคโนโลยีคอมพิวเตอร์ที่แก้ไขไม่ได้'",
+            points: 25,
+            coins: 5,
+            type: "partial",
+            feedback: "การยอมรับข้อจำกัดเป็นจุดเริ่มต้นที่ดี แต่ในระดับโครงงาน ม.6 ผู้เรียนควรวิเคราะห์สาเหตุเชิงเทคนิคและทดลองปรับปรุงโมเดลก่อน"
+          }
+        ]
+      },
+      {
+        level: 3,
+        gradeLabel: "ม.6 (ด่าน 3)",
+        difficulty: "ระดับยาก • กาแล็กซีแห่งนวัตกรรม",
+        skill: "ethics",
+        title: "ภารกิจที่ 8: ความโปร่งใสในเล่มโครงงาน ม.6",
+        story: "เล่มโครงงานวิทยาศาสตร์ระดับชั้น ม.6 ของกลุ่มคุณเสร็จสมบูรณ์แล้ว โดยระหว่างทำโครงงาน คุณได้ใช้ AI ช่วยตรวจสอบไวยากรณ์ภาษาอังกฤษในบทคัดย่อ และช่วยสร้างภาพกราฟิกประกอบแนวคิด 1 ภาพ",
+        question: "คุณควรจัดการเรื่องการอ้างอิงการใช้ AI ในเล่มโครงงานอย่างไรจึงจะถูกต้องตามหลักจริยธรรมสากล?",
+        hint: "ความโปร่งใส (Transparency) และความรับผิดชอบ (Accountability) คือมาตรฐานสำคัญของการใช้ AI ในงานวิชาการ",
+        choices: [
+          {
+            text: "ระบุในกิตติกรรมประกาศหรือวิธีการดำเนินงานอย่างโปร่งใสว่าใช้เครื่องมือ AI ใด ช่วยในขั้นตอนใดบ้าง และยืนยันว่าผู้จัดทำได้ตรวจสอบความถูกต้องแล้ว",
+            points: 100,
+            coins: 30,
+            type: "correct",
+            feedback: "เป็นแบบอย่างที่ดีเยี่ยม! การเปิดเผยการใช้ AI อย่างโปร่งใสแสดงถึงความซื่อสัตย์ทางวิชาการและความรับผิดชอบต่อผลงานของตนเอง"
+          },
+          {
+            text: "ไม่ต้องระบุอะไรเลย เพราะไม่มีใครรู้ว่าภาพและภาษาอังกฤษส่วนไหนใช้ AI ช่วย",
+            points: 0,
+            coins: 0,
+            type: "wrong",
+            feedback: "การปกปิดการใช้เครื่องมือ AI ในงานวิชาการขัดต่อหลักความโปร่งใส หากถูกตรวจสอบพบภายหลังจะส่งผลเสียต่อความน่าเชื่อถือของคณะผู้จัดทำ"
+          },
+          {
+            text: "ใส่ชื่อโปรแกรม AI เป็น 'หัวหน้าคณะผู้จัดทำโครงงาน' แทนชื่อของนักเรียนในกลุ่ม",
+            points: 15,
+            coins: 0,
+            type: "partial",
+            feedback: "AI เป็นเพียงเครื่องมือ (Tool) ไม่ใช่มนุษย์และไม่สามารถรับผิดชอบทางกฎหมายหรือวิชาการได้ ผู้จัดทำที่เป็นมนุษย์ต้องเป็นผู้รับผิดชอบหลัก"
+          }
+        ]
+      },
+      {
+        level: 3,
+        gradeLabel: "ม.6 (ด่าน 3)",
+        difficulty: "ระดับยาก • กาแล็กซีแห่งนวัตกรรม",
+        skill: "literacy",
+        title: "ภารกิจที่ 9: บททดสอบสุดท้ายก่อนจบชั้น ม.6",
+        story: "ในรอบนำเสนอโครงงานจบการศึกษา คณะกรรมการถามคำถามสำคัญกับคุณว่า: 'ในโลกอนาคตที่ AI ประมวลผลได้รวดเร็วกว่ามนุษย์ นักเรียนคิดว่าบทบาทและคุณค่าใดของมนุษย์ที่ AI ทดแทนไม่ได้?'",
+        question: "คำตอบใดสะท้อนวิสัยทัศน์ของบัณฑิตแห่ง AI Academy ได้สมบูรณ์ที่สุด?",
+        hint: "นึกถึงสิ่งที่ทำให้มนุษย์แตกต่างจากเครื่องจักร: ความเห็นอกเห็นใจ จริยธรรม และการตัดสินใจอย่างมีความหมาย",
+        choices: [
+          {
+            text: "การท่องจำข้อมูลให้ได้มากกว่าคอมพิวเตอร์และพิมพ์เอกสารให้เร็วกว่า AI",
+            points: 20,
+            coins: 5,
+            type: "partial",
+            feedback: "การแข่งขันด้านความเร็วในการจำหรือพิมพ์กับเครื่องจักรไม่ใช่วิธีที่เหมาะสม เพราะ AI ถูกออกแบบมาเพื่อช่วยแบ่งเบาภาระด้านนี้"
+          },
+          {
+            text: "มนุษย์ไม่จำเป็นต้องเรียนรู้อะไรอีกต่อไป เพราะสามารถยกหน้าที่คิดและตัดสินใจทั้งหมดให้ AI ทำแทนได้",
+            points: 0,
+            coins: 0,
+            type: "wrong",
+            feedback: "หากมนุษย์หยุดคิดและพึ่งพา AI ทั้งหมด เราจะสูญเสียความสามารถในการควบคุมทิศทางและคุณค่าของสังคม"
+          },
+          {
+            text: "การตั้งคำถามที่มีความหมาย วิจารณญาณทางจริยธรรม ความเห็นอกเห็นใจเพื่อนมนุษย์ และความรับผิดชอบต่อผลลัพธ์ที่เกิดขึ้นจากการตัดสินใจ",
+            points: 100,
+            coins: 30,
+            type: "correct",
+            feedback: "คำตอบระดับบัณฑิตแห่งอนาคต! AI คือพลังทวีคูณของความคิด แต่มนุษย์คือผู้กำหนดเป้าหมาย จริยธรรม และคุณค่าที่แท้จริงของเทคโนโลยี"
+          }
+        ]
+      }
+    ];
+
+    /* ==========================================================================
+       ส่วนที่ 2: ข้อมูลตราประทับเกียรติยศ (BADGES_CONFIG)
+       ========================================================================== */
+    const BADGES_CONFIG = [
+      {
+        id: "m4_explorer",
+        icon: "🚀",
+        name: "นักสำรวจดาว ม.4",
+        desc: "ผ่านภารกิจชั้น ม.4 ด้วยคะแนน 200+"
+      },
+      {
+        id: "critical_master",
+        icon: "🧠",
+        name: "นักคิดวิเคราะห์ขั้นเทพ",
+        desc: "ทำคะแนนด้านคิดวิเคราะห์ 80% ขึ้นไป"
+      },
+      {
+        id: "ethics_guardian",
+        icon: "⚖️",
+        name: "ผู้พิทักษ์จริยธรรม AI",
+        desc: "ทำคะแนนด้านจริยธรรม 80% ขึ้นไป"
+      },
+      {
+        id: "m6_graduate",
+        icon: "🎓",
+        name: "บัณฑิต AI Academy",
+        desc: "เรียนจบชั้น ม.6 (คะแนนรวม 600+)"
+      }
+    ];
+
+    /* ==========================================================================
+       ส่วนที่ 3: ระบบเสียงสังเคราะห์แบบ Offline (Web Audio API Sound Engine)
+       ========================================================================== */
+    class SpaceAudioEngine {
+      constructor() {
+        this.enabled = true;
+        this.ctx = null;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) {
+            this.ctx = new AudioCtx();
+          }
+        }
+        if (this.ctx && this.ctx.state === "suspended") {
+          this.ctx.resume();
+        }
+      }
+
+      playTone(freq, type = "sine", duration = 0.15, delay = 0, gainVal = 0.14) {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime + delay;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.exponentialRampToValueAtTime(gainVal, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + duration + 0.02);
+      }
+
+      click() {
+        this.playTone(580, "sine", 0.08, 0, 0.1);
+      }
+
+      hint() {
+        this.playTone(660, "triangle", 0.12, 0, 0.12);
+        this.playTone(880, "triangle", 0.18, 0.08, 0.12);
+      }
+
+      correct() {
+        this.playTone(523.25, "sine", 0.14, 0, 0.15);    // C5
+        this.playTone(659.25, "sine", 0.14, 0.09, 0.15); // E5
+        this.playTone(783.99, "sine", 0.16, 0.18, 0.15); // G5
+        this.playTone(1046.5, "triangle", 0.28, 0.27, 0.16); // C6
+      }
+
+      partial() {
+        this.playTone(440, "triangle", 0.16, 0, 0.13);
+        this.playTone(493.88, "triangle", 0.22, 0.12, 0.13);
+      }
+
+      wrong() {
+        this.playTone(310, "sawtooth", 0.18, 0, 0.09);
+        this.playTone(235, "sawtooth", 0.26, 0.14, 0.09);
+      }
+
+      victory() {
+        const notes = [523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5];
+        const times = [0, 0.11, 0.22, 0.34, 0.50, 0.64];
+        notes.forEach((n, idx) => {
+          this.playTone(n, "triangle", 0.24, times[idx], 0.16);
+        });
+      }
+
+      gameOver() {
+        this.playTone(392.0, "sine", 0.22, 0, 0.13);
+        this.playTone(349.23, "sine", 0.22, 0.18, 0.13);
+        this.playTone(329.63, "sine", 0.35, 0.36, 0.13);
+      }
+    }
+
+    const audio = new SpaceAudioEngine();
+
+    /* ==========================================================================
+       ส่วนที่ 4: สถานะของเกมและการจัดเก็บข้อมูล (Game State & LocalStorage)
+       ========================================================================== */
+    const STORAGE_KEY = "ai_academy_future_school_v1";
+    const PASSING_SCORE = 600; // เกณฑ์คะแนนผ่านเพื่อเรียนจบชั้น ม.6 (600 / 900)
+
+    let gameState = {
+      currentIndex: 0,
+      score: 0,
+      coins: 0,
+      optimalCount: 0,
+      answered: false,
+      level1Score: 0,
+      skills: {
+        critical: { earned: 0, max: 0 },
+        literacy: { earned: 0, max: 0 },
+        ethics: { earned: 0, max: 0 }
+      }
+    };
+
+    function loadSavedStats() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { highScore: 0, bestCoins: 0, unlockedBadges: [] };
+        return JSON.parse(raw);
+      } catch (e) {
+        return { highScore: 0, bestCoins: 0, unlockedBadges: [] };
+      }
+    }
+
+    function saveStats(newScore, newCoins, newlyUnlocked) {
+      try {
+        const prev = loadSavedStats();
+        const mergedBadges = Array.from(new Set([...(prev.unlockedBadges || []), ...newlyUnlocked]));
+        const updated = {
+          highScore: Math.max(prev.highScore || 0, newScore),
+          bestCoins: Math.max(prev.bestCoins || 0, newCoins),
+          unlockedBadges: mergedBadges
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        return updated;
+      } catch (e) {
+        return { highScore: newScore, bestCoins: newCoins, unlockedBadges: newlyUnlocked };
+      }
+    }
+
+    /* ==========================================================================
+       ส่วนที่ 5: ฟังก์ชันควบคุมหน้าจอและการแสดงผล (UI Controllers)
+       ========================================================================== */
+    const screens = {
+      start: document.getElementById("screenStart"),
+      game: document.getElementById("screenGame"),
+      result: document.getElementById("screenResult")
+    };
+
+    function switchScreen(targetName) {
+      Object.values(screens).forEach(el => el.classList.remove("active"));
+      screens[targetName].classList.add("active");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function createStarfield() {
+      const container = document.getElementById("starField");
+      const count = 65;
+      for (let i = 0; i < count; i++) {
+        const star = document.createElement("div");
+        star.className = "star";
+        const size = Math.random() * 2.8 + 1;
+        star.style.width = `${size}px`;
+        star.style.height = `${size}px`;
+        star.style.left = `${Math.random() * 100}%`;
+        star.style.top = `${Math.random() * 100}%`;
+        star.style.setProperty("--duration", `${(Math.random() * 3 + 2).toFixed(1)}s`);
+        star.style.setProperty("--opacity", (Math.random() * 0.6 + 0.3).toFixed(2));
+        container.appendChild(star);
+      }
+    }
+
+    function refreshStartScreenStats() {
+      const saved = loadSavedStats();
+      document.getElementById("startHighScore").textContent = saved.highScore;
+      document.getElementById("startBestCoins").textContent = saved.bestCoins;
+      document.getElementById("startBadgeCount").textContent = saved.unlockedBadges.length;
+    }
+
+    function updateMascotMood(mood) {
+      const eyeL = document.getElementById("eyeLeft");
+      const eyeR = document.getElementById("eyeRight");
+      const mouth = document.getElementById("mouthPath");
+
+      if (mood === "happy") {
+        eyeL.setAttribute("fill", "#34d399");
+        eyeR.setAttribute("fill", "#34d399");
+        mouth.setAttribute("d", "M 42 51 Q 50 60 58 51");
+        mouth.setAttribute("stroke", "#34d399");
+      } else if (mood === "concerned") {
+        eyeL.setAttribute("fill", "#f43f5e");
+        eyeR.setAttribute("fill", "#f43f5e");
+        mouth.setAttribute("d", "M 43 56 Q 50 50 57 56");
+        mouth.setAttribute("stroke", "#fbbf24");
+      } else {
+        eyeL.setAttribute("fill", "#38bdf8");
+        eyeR.setAttribute("fill", "#38bdf8");
+        mouth.setAttribute("d", "M 44 52 Q 50 57 56 52");
+        mouth.setAttribute("stroke", "#34d399");
+      }
+    }
+
+    /* ==========================================================================
+       ส่วนที่ 6: ลอจิกการเล่นเกม (Gameplay Logic)
+       ========================================================================== */
+    function startNewGame() {
+      audio.click();
+      gameState = {
+        currentIndex: 0,
+        score: 0,
+        coins: 0,
+        optimalCount: 0,
+        answered: false,
+        level1Score: 0,
+        skills: {
+          critical: { earned: 0, max: 0 },
+          literacy: { earned: 0, max: 0 },
+          ethics: { earned: 0, max: 0 }
+        }
+      };
+      switchScreen("game");
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      const q = GAME_DATA[gameState.currentIndex];
+      gameState.answered = false;
+
+      // อัปเดต HUD
+      document.getElementById("hudGrade").textContent = q.gradeLabel;
+      document.getElementById("hudProgress").textContent = `${gameState.currentIndex + 1} / ${GAME_DATA.length}`;
+      document.getElementById("hudScore").textContent = gameState.score;
+      document.getElementById("hudCoins").textContent = gameState.coins;
+
+      // อัปเดตแถบเส้นทาง ม.4 -> ม.5 -> ม.6
+      const pct = Math.round((gameState.currentIndex / GAME_DATA.length) * 100);
+      document.getElementById("progressBarFill").style.width = `${pct}%`;
+
+      const stepM4 = document.getElementById("stepM4");
+      const stepM5 = document.getElementById("stepM5");
+      const stepM6 = document.getElementById("stepM6");
+      const stepGrad = document.getElementById("stepGrad");
+
+      [stepM4, stepM5, stepM6, stepGrad].forEach(s => s.classList.remove("active", "done"));
+      if (q.level === 1) {
+        stepM4.classList.add("active");
+      } else if (q.level === 2) {
+        stepM4.classList.add("done");
+        stepM5.classList.add("active");
+      } else {
+        stepM4.classList.add("done");
+        stepM5.classList.add("done");
+        stepM6.classList.add("active");
+      }
+
+      // อัปเดตเนื้อหาโจทย์
+      document.getElementById("levelBanner").textContent = `🪐 ด่านที่ ${q.level} • ชั้นมัธยมศึกษาปีที่ ${q.level + 3} (${q.difficulty})`;
+      document.getElementById("scenarioTitle").textContent = q.title;
+      document.getElementById("scenarioStory").textContent = q.story;
+      document.getElementById("questionText").textContent = q.question;
+
+      // รีเซ็ตคำใบ้และ Feedback
+      const hintBox = document.getElementById("hintContent");
+      hintBox.textContent = `💡 คำใบ้: ${q.hint}`;
+      hintBox.classList.remove("visible");
+
+      const feedbackPanel = document.getElementById("feedbackPanel");
+      feedbackPanel.className = "feedback-panel";
+      updateMascotMood("neutral");
+
+      // สร้างปุ่มตัวเลือก
+      const container = document.getElementById("choicesContainer");
+      container.innerHTML = "";
+      const letters = ["ก", "ข", "ค", "ง"];
+
+      q.choices.forEach((choice, idx) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "choice-btn";
+        btn.innerHTML = `
+          <span class="choice-letter">${letters[idx]}</span>
+          <span>${choice.text}</span>
+        `;
+        btn.addEventListener("click", () => handleChoiceSelect(idx, btn));
+        container.appendChild(btn);
+      });
+    }
+
+    function handleChoiceSelect(choiceIdx, selectedBtn) {
+      if (gameState.answered) return;
+      gameState.answered = true;
+
+      const q = GAME_DATA[gameState.currentIndex];
+      const chosen = q.choices[choiceIdx];
+      const allBtns = document.querySelectorAll(".choice-btn");
+
+      // ปิดการกดซ้ำและไฮไลต์คำตอบ
+      allBtns.forEach((btn, idx) => {
+        btn.disabled = true;
+        const c = q.choices[idx];
+        if (c.type === "correct") {
+          btn.classList.add("correct");
+        } else if (idx === choiceIdx && c.type === "partial") {
+          btn.classList.add("partial");
+        } else if (idx === choiceIdx && c.type === "wrong") {
+          btn.classList.add("wrong");
+        }
+      });
+
+      // บันทึกคะแนนและทักษะ
+      gameState.score += chosen.points;
+      gameState.coins += chosen.coins;
+      if (q.level === 1) {
+        gameState.level1Score += chosen.points;
+      }
+
+      gameState.skills[q.skill].earned += chosen.points;
+      gameState.skills[q.skill].max += 100;
+
+      if (chosen.type === "correct") {
+        gameState.optimalCount += 1;
+      }
+
+      // อัปเดตตัวเลข HUD ทันที
+      document.getElementById("hudScore").textContent = gameState.score;
+      document.getElementById("hudCoins").textContent = gameState.coins;
+
+      // แสดง Feedback และเสียงเอฟเฟกต์ตามผลลัพธ์
+      const panel = document.getElementById("feedbackPanel");
+      const header = document.getElementById("feedbackHeader");
+      const text = document.getElementById("feedbackText");
+      const card = document.getElementById("questionCard");
+
+      if (chosen.type === "correct") {
+        audio.correct();
+        updateMascotMood("happy");
+        panel.className = "feedback-panel visible is-correct";
+        header.innerHTML = `✅ ยอดเยี่ยม! (+${chosen.points} คะแนน, +${chosen.coins} เหรียญทอง)`;
+      } else if (chosen.type === "partial") {
+        audio.partial();
+        updateMascotMood("neutral");
+        panel.className = "feedback-panel visible is-partial";
+        header.innerHTML = `💡 พอใช้ได้ แต่ยังมีวิธีที่ดีกว่า (+${chosen.points} คะแนน, +${chosen.coins} เหรียญทอง)`;
+      } else {
+        audio.wrong();
+        updateMascotMood("concerned");
+        card.classList.remove("animate-shake");
+        void card.offsetWidth;
+        card.classList.add("animate-shake");
+        panel.className = "feedback-panel visible is-wrong";
+        header.innerHTML = `⚠️ ต้องระวัง! (+0 คะแนน)`;
+      }
+
+      text.textContent = chosen.feedback;
+
+      // เปลี่ยนข้อความปุ่มถัดไปหากเป็นข้อสุดท้าย
+      const isLast = gameState.currentIndex === GAME_DATA.length - 1;
+      document.getElementById("nextBtnLabel").textContent = isLast
+        ? "ดูผลสรุปการจบการศึกษา ม.6"
+        : "ภารกิจถัดไป";
+    }
+
+    function goNextQuestion() {
+      audio.click();
+      if (gameState.currentIndex < GAME_DATA.length - 1) {
+        gameState.currentIndex += 1;
+        renderQuestion();
+      } else {
+        finishGame();
+      }
+    }
+
+    /* ==========================================================================
+       ส่วนที่ 7: การประมวลผลจบเกมและแดชบอร์ดการเรียนรู้ (Assessment & Result)
+       ========================================================================== */
+    function finishGame() {
+      switchScreen("result");
+
+      const totalMax = GAME_DATA.length * 100; // 900
+      const isWin = gameState.score >= PASSING_SCORE;
+      const accuracyPct = Math.round((gameState.optimalCount / GAME_DATA.length) * 100);
+
+      // คำนวณเปอร์เซ็นต์ทักษะแต่ละด้าน
+      const critPct = Math.round((gameState.skills.critical.earned / Math.max(1, gameState.skills.critical.max)) * 100);
+      const litPct = Math.round((gameState.skills.literacy.earned / Math.max(1, gameState.skills.literacy.max)) * 100);
+      const ethPct = Math.round((gameState.skills.ethics.earned / Math.max(1, gameState.skills.ethics.max)) * 100);
+
+      // ตรวจสอบการปลดล็อกตราประทับ (Badges)
+      const unlockedNow = [];
+      if (gameState.level1Score >= 200) unlockedNow.push("m4_explorer");
+      if (critPct >= 80) unlockedNow.push("critical_master");
+      if (ethPct >= 80) unlockedNow.push("ethics_guardian");
+      if (isWin) unlockedNow.push("m6_graduate");
+
+      const allSaved = saveStats(gameState.score, gameState.coins, unlockedNow);
+
+      // แสดงสถานะชนะหรือแพ้ตามเกณฑ์ที่กำหนด
+      const statusBadge = document.getElementById("resultStatusBadge");
+      const titleEl = document.getElementById("resultTitle");
+      const starsEl = document.getElementById("resultStars");
+      const subEl = document.getElementById("resultSubtitle");
+
+      if (isWin) {
+        audio.victory();
+        statusBadge.className = "result-status-badge status-win";
+        statusBadge.textContent = "🎉 ภารกิจสำเร็จ • เรียนจบชั้น ม.6 อย่างเป็นทางการ!";
+        titleEl.textContent = "ขอแสดงความยินดี บัณฑิตแห่ง AI Academy!";
+
+        if (gameState.score >= 800) {
+          starsEl.textContent = "⭐⭐⭐";
+          subEl.textContent = "ระดับเกียรตินิยมอันดับ 1! คุณใช้ AI เป็นผู้ช่วยได้อย่างมีวิจารณญาณ รู้เท่าทัน และเปี่ยมด้วยจริยธรรม";
+        } else if (gameState.score >= 700) {
+          starsEl.textContent = "⭐⭐";
+          subEl.textContent = "ระดับเกียรตินิยมอันดับ 2! คุณมีทักษะดิจิทัลและการคิดวิเคราะห์ที่แข็งแกร่ง พร้อมก้าวสู่อนาคต";
+        } else {
+          starsEl.textContent = "⭐";
+          subEl.textContent = "ผ่านเกณฑ์จบการศึกษา ม.6! ลองทบทวนจุดที่ควรพัฒนาเพิ่มเติมเพื่อคว้า 3 ดาวในรอบถัดไป";
+        }
+      } else {
+        audio.gameOver();
+        statusBadge.className = "result-status-badge status-lose";
+        statusBadge.textContent = "📚 ยังไม่ผ่านเกณฑ์จบการศึกษา (ต้องได้ 600 คะแนนขึ้นไป)";
+        titleEl.textContent = "ภารกิจยังไม่สำเร็จ • ต้องลงทะเบียนทบทวนใหม่";
+        starsEl.textContent = "☆ ☆ ☆";
+        subEl.textContent = "คะแนนรวมยังไม่ถึงเกณฑ์ขั้นต่ำ 600 คะแนน ลองทบทวนคำแนะนำด้านล่างแล้วกลับมาพิชิตชั้น ม.6 อีกครั้งนะ!";
+      }
+
+      // แสดงตัวเลขผลลัพธ์
+      document.getElementById("resScore").textContent = `${gameState.score} / ${totalMax}`;
+      document.getElementById("resAccuracy").textContent = `${accuracyPct}%`;
+      document.getElementById("resCoins").textContent = gameState.coins;
+
+      // อัปเดตกราฟแท่งทักษะ 3 ด้าน
+      document.getElementById("skillCriticalPct").textContent = `${critPct}%`;
+      document.getElementById("skillCriticalBar").style.width = `${critPct}%`;
+
+      document.getElementById("skillLiteracyPct").textContent = `${litPct}%`;
+      document.getElementById("skillLiteracyBar").style.width = `${litPct}%`;
+
+      document.getElementById("skillEthicsPct").textContent = `${ethPct}%`;
+      document.getElementById("skillEthicsBar").style.width = `${ethPct}%`;
+
+      // สร้างข้อเสนอแนะรายบุคคลตามจุดที่ควรพัฒนา
+      const adviceList = [];
+      if (critPct < 80) {
+        adviceList.push("• <strong>ด้านการคิดวิเคราะห์ (Critical Thinking):</strong> ควรฝึกตั้งคำถามและตรวจสอบข้อเท็จจริงจากแหล่งข้อมูลที่เชื่อถือได้เสมอ เพราะ AI อาจสร้างข้อมูลคลาดเคลื่อน (Hallucination) หรือมีอคติจากชุดข้อมูลฝึกสอนได้");
+      }
+      if (litPct < 80) {
+        adviceList.push("• <strong>ด้านการรู้ดิจิทัล (Digital Literacy):</strong> ลองฝึกเขียนคำสั่ง (Prompt) ให้ระบุบริบทและเป้าหมายชัดเจนขึ้น รวมถึงระมัดระวังการปกป้องข้อมูลส่วนบุคคล (PDPA) ก่อนอัปโหลดไฟล์เข้าสู่ AI สาธารณะ");
+      }
+      if (ethPct < 80) {
+        adviceList.push("• <strong>ด้านจริยธรรมทางวิชาการ (Academic Ethics):</strong> ควรใช้ AI เป็นผู้ช่วยระดมสมองหรือตรวจสอบงาน แต่ต้องเรียบเรียงเนื้อหาด้วยตนเองและเปิดเผยการใช้ AI อย่างโปร่งใสในผลงานวิชาการ");
+      }
+
+      const adviceEl = document.getElementById("personalAdvice");
+      if (adviceList.length === 0) {
+        adviceEl.innerHTML = "🌟 <strong>ยอดเยี่ยมสมบูรณ์แบบ!</strong> คุณมีความสมดุลทั้งด้านการคิดวิเคราะห์ การรู้เท่าทันดิจิทัล และจริยธรรมการใช้ AI พร้อมเป็นผู้นำการเรียนรู้ในโลกยุคใหม่ได้อย่างเต็มภาคภูมิ";
+      } else {
+        adviceEl.innerHTML = `<p style="margin-bottom:8px;"><strong>แนวทางพัฒนาศักยภาพเพิ่มเติมสำหรับคุณ:</strong></p>${adviceList.join("<br>")}`;
+      }
+
+      // แสดงรายการตราประทับเกียรติยศ
+      const badgesGrid = document.getElementById("badgesGrid");
+      badgesGrid.innerHTML = "";
+      BADGES_CONFIG.forEach(b => {
+        const isUnlocked = allSaved.unlockedBadges.includes(b.id);
+        const div = document.createElement("div");
+        div.className = `badge-item ${isUnlocked ? "unlocked" : ""}`;
+        div.innerHTML = `
+          <div class="badge-icon">${b.icon}</div>
+          <div class="badge-info">
+            <strong>${b.name} ${isUnlocked ? "✓" : ""}</strong>
+            <span>${b.desc}</span>
+          </div>
+        `;
+        badgesGrid.appendChild(div);
+      });
+    }
+
+    /* ==========================================================================
+       ส่วนที่ 8: การเชื่อมต่อปุ่มกดและเริ่มต้นระบบ (Event Listeners & Init)
+       ========================================================================== */
+    document.getElementById("btnStartGame").addEventListener("click", startNewGame);
+    document.getElementById("btnPlayAgain").addEventListener("click", startNewGame);
+    document.getElementById("btnBackHome").addEventListener("click", () => {
+      audio.click();
+      refreshStartScreenStats();
+      switchScreen("start");
+    });
+
+    document.getElementById("btnToggleHint").addEventListener("click", () => {
+      audio.hint();
+      document.getElementById("hintContent").classList.toggle("visible");
+    });
+
+    document.getElementById("btnNextQuestion").addEventListener("click", goNextQuestion);
+
+    // ปุ่มเปิด/ปิดเสียง
+    document.getElementById("btnSoundToggle").addEventListener("click", () => {
+      audio.enabled = !audio.enabled;
+      document.getElementById("soundIcon").textContent = audio.enabled ? "🔊" : "🔇";
+      document.getElementById("soundLabel").textContent = audio.enabled ? "เปิดเสียง" : "ปิดเสียง";
+      if (audio.enabled) audio.click();
+    });
+
+    // ปุ่มเปิด/ปิดหน้าต่างวิธีเล่น
+    const modalHowTo = document.getElementById("modalHowTo");
+    const openModal = () => { audio.click(); modalHowTo.classList.add("open"); };
+    const closeModal = () => { audio.click(); modalHowTo.classList.remove("open"); };
+
+    document.getElementById("btnHelpTop").addEventListener("click", openModal);
+    document.getElementById("btnShowHowTo").addEventListener("click", openModal);
+    document.getElementById("btnCloseModal").addEventListener("click", closeModal);
+    modalHowTo.addEventListener("click", (e) => {
+      if (e.target === modalHowTo) closeModal();
+    });
+
+    // เริ่มต้นทำงานเมื่อโหลดหน้าเว็บเสร็จ
+    createStarfield();
+    refreshStartScreenStats();
+  </script>
+</body>
+</html>
